@@ -8,7 +8,7 @@ import (
 	"net/http/httputil"
 )
 
-var baseURL = "https://opendata.resas-portal.go.jp/api/v1/prefectures?prefCode=1"
+var baseURL = "https://opendata.resas-portal.go.jp/api/v1/prefectures"
 
 //jsonのデータ入れる用
 type KenClass struct {
@@ -18,7 +18,7 @@ type KenClass struct {
 
 func main() {
 	//リクエスト実行
-	req, err := http.NewRequest("Get", baseURL, nil)
+	req, err := http.NewRequest("GET", baseURL, nil)
 	if err != nil {
 		panic(err)
 	}
