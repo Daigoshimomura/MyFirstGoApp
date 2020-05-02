@@ -6,15 +6,27 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 var baseURL = "https://opendata.resas-portal.go.jp/api/v1/prefectures"
 
 //jsonのデータ入れる用
 type KenClass struct {
-	Code string `json:"prefCode"`
-	Name string `json:"/result/prefName"`
+	Code int    `json:"prefCode"`
+	Name string `json:"prefName"`
 }
+
+//jsonのresultデータクラス
+type Result struct {
+	Message string     `json:"message"`
+	Result  []KenClass `json:"result"`
+}
+
+//表示用
+var data string = "ようこそ"
 
 func main() {
 	//リクエスト実行
@@ -43,11 +55,34 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	mapRes := new(KenClass)
-	if err := json.Unmarshal(byteArray, &mapRes); err != nil {
-		//panic(err)
-	}
 
-	fmt.Println("1")
-	fmt.Printf("県=%v", mapRes.Name)
+	var mapRes Result
+	json.Unmarshal(byteArray, &mapRes)
+
+	router := gin.Default()
+	router.LoadHTMLGlob("templates/*.html")
+
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.HTML(200, "index.html", gin.H{"data": data})
+	})
+
+	router.POST("/", func(ctx *gin.Context) {
+		ctx.Request.ParseForm()
+		code := ctx.Request.Form["prefCode"]
+		fmt.Println(code)
+		scode := code[0]
+		var sscode int
+
+		sscode, _ = strconv.Atoi(scode)
+		for _, ft := range mapRes.Result {
+			if ft.Code == sscode {
+				data = ft.Name
+			} else {
+				data = "数値のみ入力してください。"
+			}
+		}
+		ctx.HTML(200, "index.html", gin.H{"data": data})
+	})
+	router.Run()
+
 }
